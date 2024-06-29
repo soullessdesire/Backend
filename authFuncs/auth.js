@@ -30,7 +30,6 @@ const auth = (req, res) => {
     });
   } catch (e) {
     console.log(e.message);
-    res.sendStatus(403);
   }
 };
 module.exports = auth;
