@@ -1,4 +1,9 @@
 const mongoose = require("mongoose");
+const personalDetails = require("./personalDetails");
+const kinInfo = require("./kinInfo");
+const servicesSchema = require("./Services");
+const Services = require("./Services");
+const ImageSchema = require("./image");
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -47,6 +52,18 @@ const userSchema = new mongoose.Schema({
       },
       message: "This googleId is already used",
     },
+  },
+  phoneNumber: {
+    type: String,
+    // validator: {
+    //   message: "This is not a phone number",
+    //   validate: async function (value) {},
+    // },
+  },
+  Age: {
+    type: Number,
+    max: 100,
+    min: 10,
   },
   accessToken: String,
   refreshToken: String,

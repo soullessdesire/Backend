@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 
 const ImageSchema = new mongoose.Schema({
-  name: String,
   path: String,
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 });
 
 module.exports = mongoose.model("Image", ImageSchema);
