@@ -1,12 +1,12 @@
-const User = require("../../Schemas/user");
+const User = require("../../Schemas/DB/user");
 const hashing = require("../../cryptography/hashing");
 require("dotenv").config();
 const generateToken = require("../../authFuncs/generateToken");
-const kinInfo = require("../../Schemas/kinInfo");
-const Services = require("../../Schemas/Services");
-const personalDetails = require("../../Schemas/personalDetails");
-const Image = require("../../Schemas/image");
-const Address = require("../../Schemas/address");
+const kinInfo = require("../../Schemas/DB/kinInfo");
+const Services = require("../../Schemas/DB/Services");
+const personalDetails = require("../../Schemas/DB/personalDetails");
+const Image = require("../../Schemas/DB/image");
+const Address = require("../../Schemas/DB/address");
 
 const createUser = async (req, res) => {
   try {

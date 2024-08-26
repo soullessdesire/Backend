@@ -4,7 +4,7 @@ const login = require("../controllers/Login/login");
 const auth = require("../authFuncs/auth");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const User = require("../Schemas/user");
+const User = require("../Schemas/DB/user");
 const generateToken = require("../authFuncs/generateToken");
 
 router.post("/login", login);
