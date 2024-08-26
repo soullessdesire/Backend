@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const User = require("../Schemas/DB/user");
 
-const auth = (req, res) => {
+const auth = async (req, res) => {
   try {
     const { token } = req.body;
     jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
@@ -12,7 +13,7 @@ const auth = (req, res) => {
       }
       if (decoded.exp <= new Date()) {
         console.log("token has expired");
-        res.sendStatus(403);
+        return res.sendStatus(403);
       }
       switch (decoded.role) {
         case "patient":
@@ -25,8 +26,18 @@ const auth = (req, res) => {
           level = 3;
           break;
       }
-      console.log(level);
-      res.status(200).json({ level });
+      const action = async () => {
+        const data = await User.findOne({ username: decoded.user })
+          .populate("personalDetails")
+          .populate("Address")
+          .populate("kinInfo")
+          .populate("Services")
+          .populate("Image");
+        data["_doc"]["password"] = "ha gotya";
+        const userData = { ...data["_doc"] };
+        res.status(200).json({ level, userData });
+      };
+      action();
     });
   } catch (e) {
     console.log(e.message);

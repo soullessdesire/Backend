@@ -22,6 +22,7 @@ const login = async (req, res) => {
     }
     const payload = {
       role: "patient",
+      user: user[0].username,
       iat: Date.now(),
     };
     jwt.sign(

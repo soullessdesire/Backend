@@ -1,41 +1,25 @@
 const mongoose = require("mongoose");
-const personalDetails = require("./personalDetails");
-const kinInfo = require("./kinInfo");
-const servicesSchema = require("./Services");
-const Services = require("./Services");
-const ImageSchema = require("./image");
 
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: [true, "The username is required"],
-    validator: {
-      validate: async function (value) {
-        const count = await mongoose
-          .model("User")
-          .countDocuments({ username: value });
-        return count === 0;
-      },
-      message: "The username is already in use",
-    },
+    unique: true,
+    minLength: 4,
   },
   email: {
     type: String,
     required: [true, "The email is required"],
+    unique: true,
   },
   password: {
     type: String,
     minLength: 8,
-    validator: {
-      validate: async function (value) {
-        if (
-          /[A-Z]/.test(value) &&
-          /[$.?><)(*&^%$#@!-_=}{}\/'";:+]/.test(value)
-        ) {
-          return true;
-        }
-        console.log("password error");
-        return false;
+    validate: {
+      validator: function (value) {
+        return (
+          /[A-Z]/.test(value) && /[$.?><)(*&^%$#@!-_=}{}\/'";:+]/.test(value)
+        );
       },
       message:
         "The password must contain one capital letter and one special character",
@@ -43,30 +27,38 @@ const userSchema = new mongoose.Schema({
   },
   googleId: {
     type: String,
-    validator: {
-      validate: async function (value) {
-        const count = await mongoose
+    validate: {
+      validator: function (value) {
+        const count = mongoose
           .model("User")
           .countDocuments({ googleId: value });
         return count === 0;
       },
-      message: "This googleId is already used",
+      message: "This googleId is already in use",
     },
-  },
-  phoneNumber: {
-    type: String,
-    // validator: {
-    //   message: "This is not a phone number",
-    //   validate: async function (value) {},
-    // },
-  },
-  Age: {
-    type: Number,
-    max: 100,
-    min: 10,
   },
   accessToken: String,
   refreshToken: String,
+  personalDetails: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "PersonalDetails",
+  },
+  Image: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Image",
+  },
+  kinInfo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Kin",
+  },
+  Services: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Services",
+  },
+  Address: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Address",
+  },
   createdAt: {
     type: Date,
     immutable: true,
@@ -77,5 +69,16 @@ const userSchema = new mongoose.Schema({
     default: () => Date.now(),
   },
 });
+
+userSchema.index({ username: 1 }, { unique: true });
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index(
+  { googleId: 1 },
+  {
+    partialFilterExpression: {
+      googleId: { $type: "string", $exists: true, $ne: null },
+    },
+  }
+);
 
 module.exports = mongoose.model("User", userSchema);

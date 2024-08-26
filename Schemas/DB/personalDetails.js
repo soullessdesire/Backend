@@ -6,7 +6,7 @@ const personalDetails = new mongoose.Schema({
   maritalStatus: Boolean,
   Sexuality: String,
   Tribe: String,
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  phoneNumber: String,
 });
 
 module.exports = mongoose.model("PersonalDetails", personalDetails);
