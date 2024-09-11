@@ -5,73 +5,74 @@ const auth = require("../authFuncs/auth");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = require("../Schemas/DB/user");
+const Image = require("../Schemas/DB/image");
 const generateToken = require("../authFuncs/generateToken");
 
-router.post("/login", login);
-router.post("/auth", auth);
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.CLIENT_ID,
       clientSecret: process.env.CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/auth/google/callback",
+      callbackURL: "https://localhost:3000/api/auth/google/callback",
     },
-    async (accessToken, refreshToken, profile, done) => {
-      console.log(profile);
-      let user = await User.find({ googleId: profile.id });
+    async (_, __, profile, done) => {
+      let user = await User.findOne({ googleId: profile.id });
       console.log(user);
-      if (!user.length) {
+      if (!user) {
+        let image;
+        if (profile.photos.length) {
+          image = await Image.create({
+            path: profile.photos[0].value,
+          });
+          console.log(image);
+        }
         user = await User.create({
           username: profile.displayName,
           email: profile.emails[0].value,
           googleId: profile.id,
-          accessToken,
-          refreshToken,
+          Image: image ? image._id : "",
         });
-      } else {
-        user.accessToken = accessToken;
-        user.refreshToken = refreshToken;
       }
-      done(null, profile);
+      done(null, user);
     }
   )
 );
 passport.serializeUser((user, done) => {
   try {
-    done(null, user.id);
+    console.log(user, "here is another fucking log");
+    done(null, user.googleId);
   } catch (error) {
     console.error("Error serializing user:", error);
     done(error);
   }
 });
 
-passport.deserializeUser(async (id, done) => {
+passport.deserializeUser(async (googleId, done) => {
   try {
-    console.log(id);
-    const user = await User.find({ googleId: id });
+    const user = await User.findOne({ googleId });
     done(null, user);
   } catch (error) {
     done(error);
   }
 });
 router.get(
-  "/auth/google",
+  "/",
   passport.authenticate("google", {
     scope: ["profile", "email"],
   })
 );
 router.get(
-  "/auth/google/callback",
+  "/callback",
   passport.authenticate("google", {
-    failureRedirect: "http://localhost:5173/login",
+    failureRedirect: "https://localhost:5173/form/main",
   }),
   (req, res) => {
     if (req.user) {
       console.log(req.user, "here is the log");
     }
-    const token = generateToken();
+    const token = generateToken(req.user.username);
     res.redirect(
-      `http://localhost:5173/patient/${req.user.name.givenName}?token=${token}`
+      `https://localhost:5173/patient/${req.user.username}/profile?token=${token}`
     );
   }
 );

@@ -7,6 +7,7 @@ const personalDetails = new mongoose.Schema({
   Sexuality: String,
   Tribe: String,
   phoneNumber: String,
+  dateOfBirth: String,
 });
 
 module.exports = mongoose.model("PersonalDetails", personalDetails);

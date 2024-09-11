@@ -10,6 +10,7 @@ const Address = require("../../Schemas/DB/address");
 
 const createUser = async (req, res) => {
   try {
+    console.log(req.body);
     let kin;
     let service;
     let personal;
@@ -29,27 +30,28 @@ const createUser = async (req, res) => {
     }
     try {
       const { servicesNeeded } = req.body;
+      console.log(servicesNeeded);
       if (servicesNeeded) {
-        const { physicalTherapy, couplesTherapy, drugTherapy } = servicesNeeded;
+        const { physicalTherapy, coupleTherapy, drugRehab } = servicesNeeded;
         service = await Services.create({
           physicalTherapy,
-          couplesTherapy,
-          drugTherapy,
+          coupleTherapy,
+          drugRehab,
         });
         console.log(service);
       }
     } catch (e) {
       console.log(e);
     }
-    const { Gender, Status, Sexuality, Religion, Tribe, phoneNumber } =
+    const { Gender, Status, Sexuality, Religion, phoneNumber, dateOfBirth } =
       req.body;
-    if ((Gender && Status && Sexuality && Religion, Tribe)) {
+    if (Gender && Status && Sexuality && Religion && dateOfBirth) {
       personal = await personalDetails.create({
         Gender,
         Status,
         Sexuality,
         Religion,
-        Tribe,
+        dateOfBirth,
         phoneNumber,
       });
       console.log(personal);
@@ -67,26 +69,24 @@ const createUser = async (req, res) => {
       console.log(Ad);
     }
     const { username, email } = req.body;
-    const token = generateToken(username);
     let { password } = req.body;
     password = await hashing(password);
-    const { googleId } = req.body;
-    // console.log(personal._id);
+    console.log(personal._id);
     console.log(service._id);
     console.log(image._id);
-    // console.log(kin._id);
+    console.log(kin._id);
     console.log(Ad._id);
     const user = await User.create({
       username,
       email,
       password,
-      googleId,
-      // kinInfo: kin._id,
+      kinInfo: kin._id,
       Services: service._id,
-      // personalDetails: personal._id,
+      personalDetails: personal._id,
       Image: image._id,
       Address: Ad._id,
     });
+    const token = generateToken(username);
     return res.status(200).json({ token });
   } catch (error) {
     res.status(500).json({ message: error });
@@ -96,3 +96,4 @@ const createUser = async (req, res) => {
 };
 
 module.exports = createUser;
+//TODO: use the save function after the debugging and testing

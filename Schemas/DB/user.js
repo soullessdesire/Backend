@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+("https://youtube.com/shorts/nckf0HKja3A?si=DS3vfPygLx5Ql4za");
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
@@ -9,33 +9,17 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: [true, "The email is required"],
     unique: true,
   },
   password: {
     type: String,
     minLength: 8,
-    validate: {
-      validator: function (value) {
-        return (
-          /[A-Z]/.test(value) && /[$.?><)(*&^%$#@!-_=}{}\/'";:+]/.test(value)
-        );
-      },
-      message:
-        "The password must contain one capital letter and one special character",
-    },
   },
   googleId: {
     type: String,
-    validate: {
-      validator: function (value) {
-        const count = mongoose
-          .model("User")
-          .countDocuments({ googleId: value });
-        return count === 0;
-      },
-      message: "This googleId is already in use",
-    },
+  },
+  facebookId: {
+    type: String,
   },
   accessToken: String,
   refreshToken: String,
@@ -75,10 +59,32 @@ userSchema.index({ email: 1 }, { unique: true });
 userSchema.index(
   { googleId: 1 },
   {
+    unique: true,
     partialFilterExpression: {
-      googleId: { $type: "string", $exists: true, $ne: null },
+      googleId: {
+        $exists: true,
+        $ne: null,
+      },
     },
   }
 );
-
+userSchema.index(
+  { facebookId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      facebookId: {
+        $exists: true,
+        $ne: null,
+      },
+    },
+  }
+);
+userSchema.pre(
+  ["findOneAndUpdate", "updateOne", "updateMany"],
+  function (next) {
+    this.set({ updateAt: Date.now() });
+    next();
+  }
+);
 module.exports = mongoose.model("User", userSchema);

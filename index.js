@@ -4,11 +4,17 @@ const express = require("express");
 const cors = require("cors");
 const userIdRoute = require("./routes/apiusersid");
 const userUserNameRoute = require("./routes/apiusername");
-const login = require("./routes/login");
 const mongoose = require("mongoose");
 const passport = require("passport");
 const session = require("express-session");
+const FacebookLogin = require("./utils/facebookLogin");
+const GoogleLogin = require("./utils/googleLogin");
+const forgotPassChange = require("./Forgot Passowrd/forgotpassword");
 const MongoStore = require("connect-mongo");
+const https = require("https");
+const fs = require("fs");
+const path = require("path");
+const authLogin = require("./utils/auth&Login");
 
 // constants
 const app = express();
@@ -29,7 +35,7 @@ app.use(
     saveUninitialized: true,
     name: "localhost",
     store: MongoStore.create({
-      mongoUrl: "mongodb://127.0.0.1:27017/session",
+      mongoUrl: "mongodb://127.0.0.1:27017/User",
       autoRemove: "interval",
       autoRemoveInterval: 60,
     }),
@@ -54,25 +60,26 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+//public
+
+app.use("/public", express.static(path.join(__dirname, "public")));
 // routes
 app.use("/api/users/id", userIdRoute);
 app.use("/api/users/username", userUserNameRoute);
-app.use("", login);
+app.use("/api/auth/facebook", FacebookLogin);
+app.use("/api/auth/google", GoogleLogin);
+app.use("/api/users/passChangeEmail", forgotPassChange);
+app.use("/api", authLogin);
 
-app.get("/", (req, res) => {
-  try {
-    if (!req.session.viewCount) {
-      req.session.viewCount = 1;
-    } else {
-      req.session.viewCount++;
-    }
-  } catch {
-    console.log("error");
-  }
-  console.log(req.session);
-  res.send("<h1>fuck off</h1>");
-});
-
-app.listen(PORT, () => {
-  console.log(`Backend server is running on http://localhost:${PORT}`);
-});
+https
+  .createServer(
+    {
+      key: fs.readFileSync(path.join(__dirname, "key.pem")),
+      cert: fs.readFileSync(path.join(__dirname, "cert.pem")),
+      passphrase: process.env.PASS_PHRASE,
+    },
+    app
+  )
+  .listen(PORT, () => {
+    console.log(`Backend server is running on https://localhost:${PORT}`);
+  });

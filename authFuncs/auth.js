@@ -27,14 +27,24 @@ const auth = async (req, res) => {
           break;
       }
       const action = async () => {
-        const data = await User.findOne({ username: decoded.user })
-          .populate("personalDetails")
-          .populate("Address")
-          .populate("kinInfo")
-          .populate("Services")
-          .populate("Image");
-        data["_doc"]["password"] = "ha gotya";
-        const userData = { ...data["_doc"] };
+        let userData;
+        let data;
+        if (decoded.hasOwnProperty("googleId") && decoded.googleId) {
+          data = await User.findOne({ googleId });
+          userData = { ...data };
+        } else if (decoded.hasOwnProperty("facebookId") && decoded.facebookId) {
+          data = await User.findOne({ facebookId });
+          userData = { ...data };
+        } else {
+          data = await User.findOne({ username: decoded.user })
+            .populate("personalDetails")
+            .populate("Address")
+            .populate("kinInfo")
+            .populate("Services")
+            .populate("Image");
+          data["_doc"]["password"] = "ha gotya";
+          userData = { ...data["_doc"] };
+        }
         res.status(200).json({ level, userData });
       };
       action();
